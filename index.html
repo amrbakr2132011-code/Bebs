@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>عالم نونتي  💖 | RAWDA</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts & Font Awesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700;900&family=Reem+Kufi:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            midnight: '#1a0814',
+            deepcrimson: '#8b0000',
+            rosegold: '#e0a96d',
+            warmglow: '#ffb3c1',
+            softcream: '#fff0f3',
+            darkviolet: '#2d0a22',
+          },
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif'],
+            amiri: ['Amiri', 'serif'],
+            kufi: ['Reem Kufi', 'sans-serif'],
+          },
+          animation: {
+            'spin-slow': 'spin 15s linear infinite',
+            'float': 'float 4s ease-in-out infinite',
+            'pulse-glow': 'pulseGlow 2.5s infinite alternate',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-10px) rotate(1deg)' },
+            },
+            pulseGlow: {
+              '0%': { boxShadow: '0 0 15px rgba(255, 179, 193, 0.3)' },
+              '100%': { boxShadow: '0 0 35px rgba(224, 169, 109, 0.7), 0 0 20px rgba(139, 0, 0, 0.5)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: radial-gradient(circle at center, #2d0a22 0%, #1a0814 70%, #0d030a 100%);
+      color: #fff0f3;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* Glassmorphism Styling */
+    .glass-card {
+      background: rgba(45, 10, 34, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(224, 169, 109, 0.25);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(255, 179, 193, 0.05);
+    }
+
+    .glass-card-gold {
+      background: linear-gradient(135deg, rgba(60, 12, 45, 0.85), rgba(26, 8, 20, 0.95));
+      backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(224, 169, 109, 0.45);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(224, 169, 109, 0.25);
+    }
+
+    /* 3D Flip Card Styles */
+    .flip-card {
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+    .flip-card.flipped .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+    .flip-card-front, .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 1.25rem;
+    }
+    .flip-card-back {
+      transform: rotateY(180deg);
+    }
+
+    #sparkle-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1a0814;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3c0c2d;
+      border-radius: 4px;
+      border: 1px solid #e0a96d;
+    }
+
+    .glow-text {
+      text-shadow: 0 0 12px rgba(255, 179, 193, 0.7), 0 0 25px rgba(224, 169, 109, 0.5);
+    }
+    .glow-gold-text {
+      text-shadow: 0 0 12px rgba(224, 169, 109, 0.8), 0 0 25px rgba(255, 179, 193, 0.6);
+    }
+  </style>
+</head>
+<body class="min-h-screen relative">
+
+  <!-- Floating Sparkles Canvas -->
+  <canvas id="sparkle-canvas"></canvas>
+
+  <!-- Audio Toggle Button -->
+  <button id="musicToggleBtn" onclick="toggleAudio()" aria-label="Toggle Music" class="fixed top-5 left-5 z-50 w-12 h-12 rounded-full glass-card border border-rosegold/50 flex items-center justify-center text-rosegold hover:text-white transition-all duration-300 hover:scale-110 shadow-lg">
+    <i id="musicIcon" class="fas fa-heart text-lg"></i>
+  </button>
+
+  <!-- Background Music -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Lock Screen -->
+  <div id="lockScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/95 backdrop-blur-2xl transition-all duration-1000">
+    <div class="glass-card-gold max-w-md w-full p-8 rounded-3xl text-center relative overflow-hidden transform hover:scale-[1.01] transition-transform">
+      
+      <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-tr from-deepcrimson via-rosegold to-warmglow p-[2px] animate-pulse-glow">
+        <div class="w-full h-full bg-darkviolet rounded-full flex items-center justify-center text-3xl text-rosegold">
+          <i class="fas fa-lock"></i>
+        </div>
+      </div>
+
+      <h2 class="text-2xl font-bold font-kufi text-rosegold mb-2 glow-text">مَمْلَكَةُ العِشْقِ لـِ رَوْضَة ✨</h2>
+      <p class="text-xs text-warmglow/80 mb-6 font-light">أدخلي التاريخ المميز الخاص بنونتي للدخول إلى عالمك ❤️</p>
+
+      <div class="relative mb-4">
+        <input type="password" id="passcode" placeholder="••••••••" 
+               class="w-full px-5 py-3.5 bg-midnight/70 border-2 border-rosegold/40 rounded-2xl text-center text-xl text-white tracking-widest placeholder-gray-500 focus:outline-none focus:border-rosegold focus:ring-2 focus:ring-rosegold/40 transition-all">
+      </div>
+
+      <p id="lockError" class="text-red-400 text-xs font-semibold mb-4 hidden animate-bounce">
+        الباسوورد مش صح يا بنتي الشقية! 😜 ركزي وافتكري تاريخنا الحلو ❤️
+      </p>
+
+      <button onclick="unlockVault()" class="w-full py-4 bg-gradient-to-r from-deepcrimson via-rosegold to-warmglow text-midnight font-black rounded-2xl shadow-lg hover:shadow-rosegold/50 hover:brightness-110 active:scale-95 transition-all text-lg font-cairo">
+        افتحي عالمك  ✨💖
+      </button>
+
+      <div class="mt-4 text-[11px] text-gray-400">
+        💡 تلميح: يوم الميلاد الجميل (1/1/2009)
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App Layout -->
+  <div id="mainContent" class="relative z-10 max-w-4xl mx-auto px-4 py-8 md:py-12 flex flex-col gap-10 opacity-0 transition-opacity duration-1000">
+
+    <!-- Romantic Header Banner -->
+    <header class="glass-card-gold rounded-3xl p-6 md:p-10 text-center relative overflow-hidden animate-float">
+      <div class="absolute -top-12 -right-12 w-40 h-40 bg-rosegold/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-deepcrimson/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Avatar Profile -->
+      <div class="relative w-36 h-36 md:w-44 md:h-44 mx-auto mb-6">
+        <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-rosegold text-3xl md:text-4xl animate-bounce z-20 drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+          👑
+        </div>
+        
+        <div class="w-full h-full rounded-full p-1 bg-gradient-to-tr from-rosegold via-warmglow to-deepcrimson animate-spin-slow"></div>
+        <img src="1000027515.webp" 
+             onerror="this.src='https://placehold.co/300x300/2d0a22/e0a96d?text=RAWDA+💖'" 
+             alt="RAWDA" 
+             class="absolute inset-1 w-[calc(100%-8px)] h-[calc(100%-8px)] object-cover rounded-full border-2 border-darkviolet shadow-2xl z-10">
+      </div>
+
+      <div class="inline-flex items-center gap-2 px-5 py-1.5 rounded-full bg-rosegold/20 border border-rosegold/50 text-rosegold text-xs md:text-sm font-semibold mb-4">
+        <i class="fas fa-sparkles text-warmglow"></i>
+        <span>RAWDA • أميرة دنيتي وحبيبة قلبي</span>
+        <i class="fas fa-sparkles text-warmglow"></i>
+      </div>
+
+      <h1 class="text-3xl md:text-5xl font-extrabold font-kufi text-transparent bg-clip-text bg-gradient-to-r from-warmglow via-white to-rosegold mb-3 glow-gold-text">
+        نونتي الصغنونة وكل دنيتي ❤️
+      </h1>
+      
+      <p class="text-sm md:text-lg text-softcream/90 font-light max-w-xl mx-auto leading-relaxed">
+        أنتِ مش بس حبيبتي.. أنتِ بنتي وطفلتي ونوري اللي بنور بيه حياتي كلها 🌸✨
+      </p>
+    </header>
+
+    <!-- Live Relationship Counter -->
+    <section class="glass-card rounded-3xl p-6 md:p-8 text-center relative">
+      <h3 class="text-lg md:text-xl font-bold text-rosegold mb-2 font-kufi flex items-center justify-center gap-2">
+        <i class="fas fa-heart text-warmglow animate-pulse"></i>
+        <span>عدي كام يوم وكل يوم حبك بيزيد في قلبي؟ ⏳✨</span>
+        <i class="fas fa-heart text-warmglow animate-pulse"></i>
+      </h3>
+      <p class="text-xs md:text-sm text-warmglow/70 mb-6">كل ثانية وأنتِي معايا بتسوى عندي الدنيا وما فيها 💖</p>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+        <div class="glass-card p-4 rounded-2xl border-rosegold/30 hover:border-rosegold/70 transition-colors">
+          <span id="timerDays" class="block text-2xl md:text-4xl font-extrabold text-white glow-text font-mono">0</span>
+          <span class="text-xs text-rosegold font-semibold">يوماً</span>
+        </div>
+        <div class="glass-card p-4 rounded-2xl border-rosegold/30 hover:border-rosegold/70 transition-colors">
+          <span id="timerHours" class="block text-2xl md:text-4xl font-extrabold text-white glow-text font-mono">0</span>
+          <span class="text-xs text-rosegold font-semibold">ساعة</span>
+        </div>
+        <div class="glass-card p-4 rounded-2xl border-rosegold/30 hover:border-rosegold/70 transition-colors">
+          <span id="timerMinutes" class="block text-2xl md:text-4xl font-extrabold text-white glow-text font-mono">0</span>
+          <span class="text-xs text-rosegold font-semibold">دقيقة</span>
+        </div>
+        <div class="glass-card p-4 rounded-2xl border-rosegold/30 hover:border-rosegold/70 transition-colors">
+          <span id="timerSeconds" class="block text-2xl md:text-4xl font-extrabold text-rosegold glow-text font-mono">0</span>
+          <span class="text-xs text-rosegold font-semibold">ثانية</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deep Pure Romantic Tabbed Section -->
+    <section class="glass-card rounded-3xl p-6 md:p-8">
+      
+      <div class="flex flex-wrap gap-2 mb-6 border-b border-rosegold/20 pb-4 justify-center">
+        <button onclick="switchTab('love-letter')" id="tab-love-letter" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-rosegold text-midnight shadow-md">
+          💌  حُب لـ نونتي
+        </button>
+        <button onclick="switchTab('poem')" id="tab-poem" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-midnight/50 text-rosegold hover:bg-rosegold/20">
+          📜 تعرفي ي نونو؟
+        </button>
+        <button onclick="switchTab('secret-reasons')" id="tab-secret-reasons" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-midnight/50 text-rosegold hover:bg-rosegold/20">
+          💖 ليه أنتِي بالتحديد؟
+        </button>
+      </div>
+
+      <!-- Love Letter Tab -->
+      <div id="content-love-letter" class="tab-content transition-all">
+        <div class="space-y-4 text-right">
+          <h4 class="text-xl font-bold text-rosegold font-kufi flex items-center gap-2">
+            <i class="fas fa-scroll text-warmglow"></i>
+            <span>إلى نونتي الجميلة وأميرة قلبي...</span>
+          </h4>
+          <p class="text-sm md:text-base text-softcream/90 leading-relaxed font-light">
+            روضة قلبي.. وجودك في حياتي مش مجرد صدفة حلوة، ده أجمل نِعمة ربنا رزقني بيها. أنتِ البنت اللي مهما كبرت في نظري بتفضل بنتي الصغيرة اللي بحب أشوف ضحتك الطفولية كل يوم.
+          </p>
+          <p class="text-sm md:text-base text-softcream/90 leading-relaxed font-light">
+            عملتلك المكان ده عشان يفضل شاهد على حبنا، وتفتكري دايماً إن فيه حد في الدنيا دي كلها بيحبك فوق ما تتخيلي، وجاهز يعمل أي حاجة عشان يشوف الفرحة جوه عيونك! ❤️🌸
+          </p>
+        </div>
+      </div>
+
+      <!-- Romantic Poem Tab -->
+      <div id="content-poem" class="tab-content hidden transition-all">
+        <div class="text-center space-y-4 py-2">
+          <h4 class="text-xl font-bold text-rosegold font-amiri">صُدْفَةُ العُمْرِ وَنُورُ العُيُونِ</h4>
+          <div class="font-amiri text-base md:text-xl text-softcream leading-loose space-y-3 bg-darkviolet/40 p-6 rounded-2xl border border-rosegold/20">
+            <p>تَعَالَاقِي صُدْفَةً فَبَدَا عَبِيرُكِ ... وَأَشْرَقَ نُورُ عَيْنَيْكِ الصَّغِيرُ</p>
+            <p>رَأَيْتُكِ هَكِذَا فَجْأَةً، فَألْفَيْتُ ... فُؤَادِي فِي هَوَاكِ يَهيمُ حَيْرُ</p>
+            <p>كَأَنَّ الكَوْنَ كُلَّهُ غَابَ حَوْلِي ... وَلَمْ أُبْصِرْ سِوَى الْوَجْهِ المُنِيرِ</p>
+            <p>رَوِيَتِ الرُّوحُ مِنْ عَيْنَيْكِ عِشْقاً ... يَا زَهْرَةً مَلاَتْ عَلَيَّ مَصِيرِي</p>
+            <p>صُدْفَةٌ كَانَتْ، وَلَكِنْ فِي عُيُونِي ... رَأَيْتُ بِهَا الهَنَا، وَنَبْضَ الضَّمِيرِ</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D Interactive Secret Message Cards -->
+      <div id="content-secret-reasons" class="tab-content hidden transition-all">
+        <p class="text-xs text-warmglow/70 text-center mb-4">اقلبي الكروت واكتشفي أسرار حبك في قلبي 🃏✨</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <!-- Card 1 -->
+          <div class="flip-card h-40 cursor-pointer" onclick="this.classList.toggle('flipped')">
+            <div class="flip-card-inner">
+              <div class="flip-card-front glass-card border-rosegold/40 flex flex-col items-center justify-center p-4 text-center">
+                <span class="text-3xl mb-2">🌸</span>
+                <h5 class="font-bold text-rosegold">ضحكتك النظيفة</h5>
+                <span class="text-[10px] text-gray-400 mt-2">اضغطي لمشاهدة السِر 🔄</span>
+              </div>
+              <div class="flip-card-back glass-card-gold flex items-center justify-center p-4 text-center">
+                <p class="text-xs md:text-sm text-white leading-relaxed">ضحكتك دي هي دوا قلبي وأي يوم بتبتسمي فيه بيبقى بالنسبة لي يوم عيد ❤️</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="flip-card h-40 cursor-pointer" onclick="this.classList.toggle('flipped')">
+            <div class="flip-card-inner">
+              <div class="flip-card-front glass-card border-rosegold/40 flex flex-col items-center justify-center p-4 text-center">
+                <span class="text-3xl mb-2">👑</span>
+                <h5 class="font-bold text-rosegold">طيبة قلبك النادرة</h5>
+                <span class="text-[10px] text-gray-400 mt-2">اضغطي لمشاهدة السِر 🔄</span>
+              </div>
+              <div class="flip-card-back glass-card-gold flex items-center justify-center p-4 text-center">
+                <p class="text-xs md:text-sm text-white leading-relaxed">أنتِ أطيب وأحن بنوتة في الدنيا، وقلبك الأبيض مفيش منه اتنين 💎</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="flip-card h-40 cursor-pointer" onclick="this.classList.toggle('flipped')">
+            <div class="flip-card-inner">
+              <div class="flip-card-front glass-card border-rosegold/40 flex flex-col items-center justify-center p-4 text-center">
+                <span class="text-3xl mb-2">✨</span>
+                <h5 class="font-bold text-rosegold">وجودك جنبي</h5>
+                <span class="text-[10px] text-gray-400 mt-2">اضغطي لمشاهدة السِر 🔄</span>
+              </div>
+              <div class="flip-card-back glass-card-gold flex items-center justify-center p-4 text-center">
+                <p class="text-xs md:text-sm text-white leading-relaxed">بحس بالكمال وأنا معاكي، وكأن الدنيا كلها اتجمعت في وجودك معايا 🌹</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="flip-card h-40 cursor-pointer" onclick="this.classList.toggle('flipped')">
+            <div class="flip-card-inner">
+              <div class="flip-card-front glass-card border-rosegold/40 flex flex-col items-center justify-center p-4 text-center">
+                <span class="text-3xl mb-2">👧💖</span>
+                <h5 class="font-bold text-rosegold">نونتي وبنتي</h5>
+                <span class="text-[10px] text-gray-400 mt-2">اضغطي لمشاهدة السِر 🔄</span>
+              </div>
+              <div class="flip-card-back glass-card-gold flex items-center justify-center p-4 text-center">
+                <p class="text-xs md:text-sm text-white leading-relaxed">طفلتي الصغيورة اللي هفضل أحميها وأسعدها طول ما أنا بتنفس 💍</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Interactive Romantic Question Area -->
+    <section class="glass-card-gold rounded-3xl p-6 md:p-10 text-center relative overflow-hidden min-h-[280px] flex flex-col justify-center items-center">
+      <h3 class="text-2xl md:text-3xl font-bold text-white font-kufi mb-3 glow-text">
+        تمشي معايا طريق العمر كله يا نونتي؟ 💍❤️
+      </h3>
+      <p class="text-xs md:text-sm text-warmglow/80 mb-8">أنتِ أملي وحلمي الوحيد في الدنيا دي كلها!</p>
+
+      <div id="arenaBounds" class="relative w-full max-w-md h-32 flex items-center justify-center gap-6">
+        
+        <button onclick="acceptForever()" class="z-20 px-8 py-4 bg-gradient-to-r from-rosegold via-warmglow to-amber-300 text-midnight font-black rounded-2xl shadow-xl hover:shadow-rosegold/50 hover:scale-105 active:scale-95 transition-all text-lg">
+          طبعاً معاك لأخر العمر ❤️
+        </button>
+
+        <button id="noBtn" onmouseenter="evadeButton()" onclick="evadeButton()" 
+                class="absolute z-10 px-6 py-3.5 bg-gradient-to-r from-deepcrimson to-red-800 text-white font-bold rounded-2xl shadow-md transition-all duration-200 text-sm whitespace-nowrap">
+          مش هتقدر تمسكني 😜
+        </button>
+
+      </div>
+    </section>
+
+    <footer class="text-center text-xs text-warmglow/50 py-4">
+      صُنِع بكل الحب والمشاعر لـ <span class="text-rosegold font-bold">روضة (NONETY)</span> ❤️
+    </footer>
+
+  </div>
+
+  <!-- Celebration Modal -->
+  <div id="celebrationModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-midnight/90 backdrop-blur-md hidden transition-all">
+    <div class="glass-card-gold max-w-lg w-full p-8 rounded-3xl text-center relative border-2 border-rosegold animate-float">
+      
+      <div class="text-5xl mb-4 animate-bounce">💍 ✨ 🌹</div>
+
+      <h2 class="text-2xl md:text-3xl font-extrabold text-rosegold font-kufi mb-4 glow-gold-text">
+        أجمل أحلامي تحققت! ❤️
+      </h2>
+
+      <p class="text-sm md:text-base text-softcream leading-relaxed mb-6 font-light">
+        ربنا يخليكي ليا وما يحرمنيش من وجودك في حياتي أبداً يا نونتي .. أوعدك هفضل أسعدك وأحبك لأخر يوم في عمري♥️ متنسيش هاخد البوثه برضو🫣! 👑💍
+      </p>
+
+      <button onclick="closeCelebrationModal()" class="px-8 py-3.5 bg-gradient-to-r from-deepcrimson via-rosegold to-warmglow text-midnight font-extrabold rounded-2xl shadow-lg hover:brightness-110 active:scale-95 transition-all text-base">
+        بحبك يا نونتي 🫣❤️
+      </button>
+
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    /* Sparkles & Floating Hearts Canvas */
+    const canvas = document.getElementById('sparkle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles =
